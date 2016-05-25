@@ -270,6 +270,7 @@ run. The problem though is that as we speak, ``karma-coverage`` uses Istanbul
 need Istanbul 1.0.0-alpha2 or higher. We've not been able to combine the formats
 produced by the various versions.
 
+<!--
 #  LocalWords:  Bluejax jQuery's ajax jQuery jquery CommonJS bluejax url jqXHR
 #  LocalWords:  GeneralAjaxError getElementById innerHTML verboseResults nginx
 #  LocalWords:  textStatus errorThrown HttpError TimeoutError AbortError GETs
@@ -277,3 +278,4 @@ produced by the various versions.
 #  LocalWords:  ServerDownError NetworkDownError setDefaultOptions Bluejax's
 #  LocalWords:  getDefaultOptions serverURL knownServers verboseExceptions JSON
 #  LocalWords:  bluejaxOptions provideXHR onLine favicon ico ttttt
+-->
