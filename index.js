@@ -349,7 +349,7 @@
 
   // semver-sync detects an assignment to `exports.version` and uses the string
   // literal for matching. Messing with this line could make semver-sync fail.
-  exports.version = "0.1.0";
+  exports.version = "0.1.1";
 
   // Export the errors
   for (var x in errors) { // eslint-disable-line guard-for-in
