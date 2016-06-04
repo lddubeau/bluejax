@@ -1,5 +1,5 @@
 const allTestFiles = [];
-const TEST_REGEXP = /test\/.*\.js$/i;
+const TEST_REGEXP = /test\/(?!karma-main).*\.js$/i;
 
 Object.keys(window.__karma__.files).forEach((file) => {
   if (TEST_REGEXP.test(file)) {
