@@ -175,8 +175,6 @@
   inherit(NetworkDownError, ConnectivityError);
   rename(NetworkDownError);
 
-  var defaultOptions = {};
-
   // For the ``ajax()`` function cannot use:
   //
   // return Promise.resolve($.ajax.apply($.ajax, arguments))
@@ -346,8 +344,7 @@
   function _ajax$(url, settings, override) {
     // We just need to split up the arguments and pass them to ``doit``.
     var originalArgs = settings ? [url, settings] : [url];
-    var extracted = bluetry.extractBluejaxOptions(originalArgs,
-                                                  defaultOptions);
+    var extracted = bluetry.extractBluejaxOptions(originalArgs);
     // We need a copy here so that we do not mess up what the user passes to us.
     var bluejaxOptions = $.extend({}, override, extracted[0]);
     var cleanedOptions = extracted[1];
@@ -379,22 +376,12 @@
     };
   }
 
-  function setDefaultOptions(opts) {
-    defaultOptions = opts;
-  }
-
-  function getDefaultOptions() {
-    return defaultOptions;
-  }
-
   var exports = {
     try: bluetry,
     ajax: ajax,
     ajax$: ajax$,
     GeneralAjaxError: GeneralAjaxError,
     make: make,
-    setDefaultOptions: setDefaultOptions,
-    getDefaultOptions: getDefaultOptions,
   };
 
   // ``semver-sync`` detects an assignment to ``exports.version`` and uses the

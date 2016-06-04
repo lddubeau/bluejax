@@ -121,12 +121,6 @@ The module exports these items:
 * If none of the more specialized cases above apply, then ``AjaxError`` is
   raised.
 
-* ``setDefaultOptions(options)`` Bluejax's options globally. The object passed
-  should not be modified further after the call.
-
-* ``getDefaultOptions()`` returns the options currently in effect. The object
-  returned should not be modified. Clone it if you need to modify it.
-
 Options
 -------
 
@@ -187,7 +181,7 @@ Bluejax currently supports these options:
                  bluejaxOptions: { verboseResults: true }
             }).spread(function (data, textStatus, jqXHR) {...
 
-There are three ways to set Bluejax options:
+There are two ways to set Bluejax options:
 
 * You can set set the ``bluejaxOptions`` field on a settings object passed to
   ``ajax``. Remember that ``ajax(...)`` takes the same parameters as
@@ -202,21 +196,6 @@ There are three ways to set Bluejax options:
       });
 
 * You can create a new ``ajax``-like function with ``make``.
-
-* You can set options globally by using ``setDefaultOptions(...)``. So you could
-  turn on verbose exceptions for all calls with:
-
-      bluejax.setDefaultOptions({
-          verboseExceptions: true
-      });
-
-  The options passed to ``ajax(...)`` override those passed to
-  ``setDefaultOptions()``.
-
-  **There are options that should not be changed using this method. For instance
-    ``verboseResults`` would entail changing the value to which the promises
-    returned by ``ajax`` resolve. This would most likely break code.** Bluejax
-    won't prevent you from shooting you in the foot.
 
 Diagnosis Rules
 ===============

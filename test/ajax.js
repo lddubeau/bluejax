@@ -83,7 +83,6 @@ describe("", () => {
 
   afterEach(() => {
     if (xhr) xhr.restore();
-    bluejax.setDefaultOptions({});
   });
 
   describe("ajax", () => {
@@ -112,23 +111,6 @@ describe("", () => {
           verboseExceptions: true,
         },
       };
-      return assert.isRejected(ajax(opts)).then(err => {
-        assert.equal(err.constructor, bluejax.HttpError);
-        assert.equal(
-          err.toString(),
-          "HttpError: Ajax operation failed: Internal Server " +
-          `Error (500). Called with: ${JSON.stringify([opts])}`);
-        assert.isDefined(err.jqXHR);
-        assert.equal(err.textStatus, "error");
-        assert.equal(err.errorThrown, "Internal Server Error");
-      });
-    });
-
-    it("should throw a verbose error when defaultOptions." +
-       "verboseExceptions is true", () => {
-      bluejax.setDefaultOptions({ verboseExceptions: true });
-      nextResponses = [error];
-      const opts = { url };
       return assert.isRejected(ajax(opts)).then(err => {
         assert.equal(err.constructor, bluejax.HttpError);
         assert.equal(
