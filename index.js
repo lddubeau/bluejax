@@ -16,12 +16,10 @@
   }
   else {
     /* global jQuery Promise */
-    root.bluejax = factory(jQuery, { Promise: Promise });
+    root.bluejax = factory(jQuery, Promise);
   }
-}(this, function factory($, bluebird) {
+}(this, function factory($, Promise) {
   "use strict";
-
-  var Promise = bluebird.Promise;
 
   function inherit(inheritor, inherited) {
     inheritor.prototype = Object.create(inherited.prototype);
