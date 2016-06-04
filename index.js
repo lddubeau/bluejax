@@ -8,17 +8,18 @@
   "use strict";
 
   if (typeof define === "function" && define.amd) {
-    define(["jquery", "bluebird"], factory);
+    define(["bluejax.try", "jquery", "bluebird"], factory);
   }
   else if (typeof module === "object" && module.exports) {
-    // eslint-disable-next-line global-require
-    module.exports = factory(require("jquery"), require("bluebird"));
+    /* eslint-disable global-require */
+    module.exports = factory(require("bluejax.try"),
+                             require("jquery"), require("bluebird"));
   }
   else {
     /* global jQuery Promise */
-    root.bluejax = factory(jQuery, Promise);
+    root.bluejax = factory(root.bluejax.try, jQuery, Promise);
   }
-}(this, function factory($, Promise) {
+}(this, function factory(bluetry, $, Promise) {
   "use strict";
 
   // Utility function for class inheritance.
@@ -176,53 +177,6 @@
 
   var defaultOptions = {};
 
-  // Extract the Bluejax options from the arguments that were passed to our
-  // function. This also normalizes arguments of the signature ``url, settings``
-  // to a single ``settings`` object that contains the URL. (See the
-  // ``jQuery.ajax`` documentation to see what we are talking about.)
-  function extractBluejaxOptions(args) {
-    var bluejaxOptions;
-    var cleanedOptions;
-    var first = args[0];
-
-    if (args.length === 1) {
-      if (typeof first !== "object") {
-      // We only have a single argument which is not an object. Treat it as the
-      // URL.
-        cleanedOptions = { url: first };
-      }
-      else {
-        // Our single argument is an object, treat it as ``settings`` in the
-        // ``jQuery.ajax`` signature. We copy it because we're going to modify
-        // it.
-        cleanedOptions = $.extend({}, first);
-      }
-    }
-    else if (args.length === 2) {
-      // We have two arguments, normalize to a single ``settings``.
-      var second = args[1];
-      cleanedOptions = $.extend({}, second);
-      cleanedOptions.url = first;
-    }
-
-    bluejaxOptions = cleanedOptions.bluejaxOptions;
-    if (bluejaxOptions) {
-      // We do have ``bluejaxOptions`` so we need to combine them with the
-      // ``defaultOptions`` and remove them from what we will pass to
-      // ``jQuery.ajax``.
-      bluejaxOptions = $.extend({}, defaultOptions, bluejaxOptions);
-      delete cleanedOptions.bluejaxOptions;
-    }
-    else {
-      bluejaxOptions = defaultOptions;
-    }
-
-    // ``bluejaxOptions`` now only contains the options that pertain to Bluejax,
-    // including the ``defaultOptions``. ``cleanedOptions`` is what should be
-    // passed to ``jQuery.ajax``.
-    return [bluejaxOptions, cleanedOptions];
-  }
-
   // For the ``ajax()`` function cannot use:
   //
   // return Promise.resolve($.ajax.apply($.ajax, arguments))
@@ -345,9 +299,10 @@
   }
 
   // This is the core of the functionality provided by Bluejax.
-  function doit(originalArgs, jqOptions, bjOptions, tries) {
-    var xhr = $.ajax(jqOptions);
+  function doit(originalArgs, jqOptions, bjOptions) {
+    var xhr;
     var p = new Promise(function resolver(resolve, reject) {
+      xhr = bluetry.perform.call(this, jqOptions, bjOptions);
       function succeded(data, textStatus, jqXHR) {
         resolve(bjOptions.verboseResults ? [data, textStatus, jqXHR] : data);
       }
@@ -359,17 +314,11 @@
 
         if (!isNetworkIssue(error)) {
           // As mentioned earlier, errors that are not due to the network cause
-          // an immediate rejection: no retries, no diagnosis.
+          // an immediate rejection: no diagnosis.
           reject(error);
         }
-        else if (tries > 1) {
-          // The user wanted us to retry the query, and we still have tries.
-          resolve(Promise.delay(bjOptions.delay).then(
-            doit.bind(this, originalArgs, jqOptions, bjOptions, tries - 1)));
-        }
         else {
-          // We're done with trying, and all tries failed. So we move to perhaps
-          // diagnosing what could be the problem.
+          // Move to perhaps diagnosing what could be the problem.
           var diagnose = bjOptions.diagnose;
           if (!diagnose || !diagnose.on) {
             // The user did not request diagnosis: fail now.
@@ -388,22 +337,25 @@
       xhr.fail(failed).success(succeded);
     });
 
-    // Return what the user asked for.
-    return bjOptions.provideXHR ? { xhr: xhr, promise: p } : p;
+    return { xhr: xhr, promise: p };
   }
 
   // We need this so that we can use ``make``. The ``override`` parameter is
   // used solely by ``make`` to pass the options that the user specified on
   // ``make``.
-  function _ajax(url, settings, override) {
+  function _ajax$(url, settings, override) {
     // We just need to split up the arguments and pass them to ``doit``.
     var originalArgs = settings ? [url, settings] : [url];
-    var extracted = extractBluejaxOptions(originalArgs);
+    var extracted = bluetry.extractBluejaxOptions(originalArgs,
+                                                  defaultOptions);
     // We need a copy here so that we do not mess up what the user passes to us.
     var bluejaxOptions = $.extend({}, override, extracted[0]);
     var cleanedOptions = extracted[1];
-    return doit(originalArgs, cleanedOptions, bluejaxOptions,
-                bluejaxOptions.tries);
+    return doit(originalArgs, cleanedOptions, bluejaxOptions);
+  }
+
+  function _ajax(url, settings, override) {
+    return _ajax$(url, settings, override).promise;
   }
 
   // The public face of ``_ajax``.
@@ -411,9 +363,19 @@
     return _ajax(url, settings);
   }
 
-  function make(options) {
+  function ajax$(url, settings) {
+    return _ajax$(url, settings);
+  }
+
+  function make(options, field) {
     return function customAjax(url, settings) {
-      return _ajax(url, settings, options);
+      var ret = _ajax$(url, settings, options);
+
+      if (!field) {
+        return ret;
+      }
+
+      return ret[field];
     };
   }
 
@@ -426,7 +388,9 @@
   }
 
   var exports = {
+    try: bluetry,
     ajax: ajax,
+    ajax$: ajax$,
     GeneralAjaxError: GeneralAjaxError,
     make: make,
     setDefaultOptions: setDefaultOptions,

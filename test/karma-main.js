@@ -14,6 +14,7 @@ require.config({
     jquery: "node_modules/jquery/dist/jquery",
     bluebird: "node_modules/bluebird/js/browser/bluebird",
     bluejax: "index",
+    "bluejax.try": "node_modules/bluejax.try/dist/bluejax.try",
     chai: "node_modules/chai/chai",
     "chai-as-promised": "node_modules/chai-as-promised/lib/chai-as-promised",
     sinon: "node_modules/sinon/lib/sinon",

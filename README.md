@@ -40,7 +40,7 @@ Bluebird must have been loaded beforehand.
 Using Bluejax
 =============
 
-The module exports these objects:
+The module exports these items:
 
 * ``ajax(...)`` is a function that passes all its arguments to
   ``jQuery.ajax``. By default, it returns a promise that resolves to the data
@@ -51,17 +51,36 @@ The module exports these objects:
           document.getElementById("foo").innerHTML = data;
       });
 
-* ``make(options)`` is a utility function that creates a new ``ajax``-like
-  function. The ``options`` parameter is an object containing Bluejax
-  options. The returned value is a new function that works like ``ajax`` but
-  which has its Bluejax options set to the values contained in the ``options``
-  object.
+* ``ajax$(...)`` does the same thing as ``ajax(...)`` but it returns an object
+  that has the keys ``xhr`` and ``promise``. The value of ``promise`` is the
+  same as the value returned by ``ajax(...)`` the ``xhr`` object is an object
+  like the ``jqXHR`` returned by ``jQuery.ajax``.
+
+  **Important note:** the ``xhr`` object only encapsulate **the tries** that
+  Bluejax performs. It will be successful if the Ajax query was successful
+  within the number of tries specified and will fail if the tries failed. It is
+  **not** affected by the diagnosis done after all tries failed. If you need
+  diagnostic information you **must** use the promise.
+
+* ``make(options, field)`` is a utility function that creates a new
+  ``ajax$``-like function. The ``options`` parameter is an object containing
+  Bluejax options. The returned value is a new function that works like ``ajax``
+  but which has its Bluejax options set to the values contained in the
+  ``options`` object.
+
+  The ``field`` parameter allows you to automatically extract a field. If you do
+  not specify a value for ``field``, then the return value will be the same
+  object returned by ``$ajax``. If you want to retrieve only one field from that
+  object, you must specify the field name. To get the same value as the
+  ``ajax(...)`` call, you'd need to put ``"promise"`` for the value of
+  ``field``.
 
   Example: it is possible to create a new function that will return verbose
-  results: ``var ajax$ = make({verboseResults: true});`` and use it in the same
-  way ``ajax`` is used:
+  results: ``var ajaxVerbose = make({verboseResults: true}, "promise");`` and
+  use it in the same way ``ajax`` is used:
 
-        ajax$("http://example.com").spread(function (data, textStatus, jqXHR) {
+        ajaxVerbose("http://example.com").spread(function (data, textStatus,
+                                                           jqXHR) {
            ...
         });
 
@@ -111,7 +130,7 @@ The module exports these objects:
 Options
 -------
 
-Bluejax currently supports:
+Bluejax currently supports these options:
 
 * ``tries`` tells Bluejax to retry the query for a number of times if it fails
   due to reasons **other** than the HTTP status code reports an error, aborted
@@ -119,6 +138,17 @@ Bluejax currently supports:
   appears to be at the network level rather than an application issue. Note that
   the value here should be a number greater than 1. (Values less than 1 yield
   undefined behavior.)
+
+* ``shouldRetry`` is a function with the following signature
+  ``shouldRetry(jqXHR, textStatus, errorThrown)``. It should return ``true`` if
+  the query should be retried, or ``false`` if an error should be returned
+  immediately.
+
+  If no value is specified, the default function returns ``true`` if the
+  previous query failed due to reasons **other** than the HTTP status code
+  reporting an error, aborted or had a parser error. Basically, it retries the
+  connection if the issue appears to be at the network level rather than an
+  application issue.
 
 * ``delay`` specifies the delay between retries, in milliseconds.
 
@@ -156,14 +186,6 @@ Bluejax currently supports:
        ajax(url, {
                  bluejaxOptions: { verboseResults: true }
             }).spread(function (data, textStatus, jqXHR) {...
-
-
-* ``provideXHR`` causes ``ajax`` to *return* an object with the keys ``xhr`` and
-  ``promise``. **Take note that with this option, the *return* value changes.**
-  The ``xhr`` key is set to the return value of ``jQuery.ajax`` and ``promise``
-  is set to the promise that ``ajax`` normally returns. This option is useful if
-  you need to grab a reference to the return value of ``jQuery.ajax``. For
-  instance, if you need to be able to abort the Ajax operation.
 
 There are three ways to set Bluejax options:
 
@@ -245,7 +267,7 @@ For all URLs used in diagnosis, these two transformations are applied in order:
    caches.
 
 So if you specify a known server as ``http://www.google.com/`` the URL used for
-the query will be ``http://www.google.com/favicon.icon?ttttt``, where ``ttttt```
+the query will be ``http://www.google.com/favicon.icon?ttttt``, where ``ttttt``
 is the number described above. If you specify ``http://www.example.com/foo``
 then the URL used for the query will be ``http://www.example.com/foo?ttttt``. If
 the URL you give in the options contains a query, it won't be modified **at

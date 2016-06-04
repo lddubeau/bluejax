@@ -8,6 +8,8 @@ module.exports = function configure(config) {
       "test/karma-main.js",
       { pattern: "index.js", included: false },
       { pattern: "test/**/!(commonjs).js", included: false },
+      { pattern: "node_modules/bluejax.try/dist/bluejax.try.*",
+        included: false },
       { pattern: "node_modules/jquery/dist/jquery.js", included: false },
       { pattern: "node_modules/bluebird/js/browser/bluebird.js",
         included: false },

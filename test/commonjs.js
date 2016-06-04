@@ -53,6 +53,7 @@ describe("loads", () => {
     assert.isDefined(bluejax.ajax);
     assert.isDefined(bluejax.make);
     assert.isDefined(bluejax.AjaxError);
+    assert.isDefined(bluejax.try);
   }
 
   // eslint-disable-next-line global-require
@@ -62,6 +63,7 @@ describe("loads", () => {
      new JSDom([
        "node_modules/jquery/dist/jquery.js",
        "node_modules/bluebird/js/browser/bluebird.js",
+       "node_modules/bluejax.try/dist/bluejax.try.min.js",
        "index.js",
      ]).create().then(jd => checkDefinitions(jd.window.bluejax)));
 });

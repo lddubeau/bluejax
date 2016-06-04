@@ -17,7 +17,8 @@ chai.use(chaiAsPromised);
 const assert = chai.assert;
 
 const ajax = bluejax.ajax;
-const ajax$ = bluejax.make({ verboseResults: true });
+const ajax$ = bluejax.ajax$;
+const ajaxVerbose = bluejax.make({ verboseResults: true }, "promise");
 
 function checkOpenCall(call, serverURL) {
   assert.equal(call[0], "GET", "the call should be a GET request");
@@ -219,6 +220,28 @@ describe("", () => {
         .finally(() => stub.restore());
     });
 
+    it("should use the shouldRetry option to decide to retry", () => {
+      xhr.restore();
+      xhr = null;
+
+      // Force the requests to fail.
+      const stub = sinon.stub(window.XMLHttpRequest.prototype, "open");
+      stub.throws();
+      const shouldRetry = sinon.stub();
+      shouldRetry.returns = false;
+      return assert.isRejected(ajax("http://example.com:80", {
+        bluejaxOptions: {
+          tries: 3,
+          delay: 10,
+          shouldRetry,
+        },
+      })).then(() => {
+        assert.equal(stub.callCount, 1);
+        assert.equal(shouldRetry.callCount, 1);
+        stub.restore();
+      });
+    });
+
     it("should test the server when requested: offline", () => {
       xhr.restore();
       xhr = null;
@@ -353,9 +376,17 @@ describe("", () => {
        });
   });
 
+  describe("ajax$", () => {
+    it("returns an object with a promise field", () =>
+       assert.eventually.equal(ajax$(url).promise, "something"));
+
+    it("returns an object with an xhr field", () =>
+       assert.eventually.equal(ajax$(url).xhr, "something"));
+  });
+
   describe("ajax with verboseResults", () => {
     it("should pass data, textStatus and jqXHR on success", () =>
-       ajax$(url).spread((data, textStatus, jqXHR) => {
+       ajaxVerbose(url).spread((data, textStatus, jqXHR) => {
          assert.equal(data, "something");
          assert.equal(textStatus, "success");
          assert.isDefined(jqXHR);
@@ -363,7 +394,7 @@ describe("", () => {
 
     it("should throw a proper error on failure", () => {
       nextResponses = [error];
-      return assert.isRejected(ajax$(url)).then(err => {
+      return assert.isRejected(ajaxVerbose(url)).then(err => {
         assert.equal(err.constructor, bluejax.HttpError);
         assert.equal(
           err.toString(),
@@ -383,7 +414,7 @@ describe("", () => {
           verboseExceptions: true,
         },
       };
-      return assert.isRejected(ajax$(opts)).then(err => {
+      return assert.isRejected(ajaxVerbose(opts)).then(err => {
         assert.equal(err.constructor, bluejax.HttpError);
         assert.equal(
           err.toString(),
@@ -393,20 +424,6 @@ describe("", () => {
         assert.equal(err.textStatus, "error");
         assert.equal(err.errorThrown, "Internal Server Error");
       });
-    });
-  });
-
-  describe("ajax with provideXHR true", () => {
-    it("should return the jqXHR", () => {
-      const { xhr: myXhr, promise: myPromise } = ajax(url, {
-        bluejaxOptions: {
-          provideXHR: true,
-          verboseResults: true,
-        },
-      });
-
-      return assert.eventually.deepEqual(myPromise,
-                                         ["something", "success", myXhr]);
     });
   });
 
