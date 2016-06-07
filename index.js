@@ -297,10 +297,10 @@
   }
 
   // This is the core of the functionality provided by Bluejax.
-  function doit(originalArgs, jqOptions, bjOptions) {
+  function doit(originalArgs, originalSettings, jqOptions, bjOptions) {
     var xhr;
     var p = new Promise(function resolver(resolve, reject) {
-      xhr = bluetry.perform.call(this, jqOptions, bjOptions);
+      xhr = bluetry.perform.call(this, originalSettings, jqOptions, bjOptions);
       function succeded(data, textStatus, jqXHR) {
         resolve(bjOptions.verboseResults ? [data, textStatus, jqXHR] : data);
       }
@@ -344,11 +344,12 @@
   function _ajax$(url, settings, override) {
     // We just need to split up the arguments and pass them to ``doit``.
     var originalArgs = settings ? [url, settings] : [url];
+    var originalSettings = settings || url;
     var extracted = bluetry.extractBluejaxOptions(originalArgs);
     // We need a copy here so that we do not mess up what the user passes to us.
     var bluejaxOptions = $.extend({}, override, extracted[0]);
     var cleanedOptions = extracted[1];
-    return doit(originalArgs, cleanedOptions, bluejaxOptions);
+    return doit(originalArgs, originalSettings, cleanedOptions, bluejaxOptions);
   }
 
   function _ajax(url, settings, override) {
@@ -387,7 +388,7 @@
   // ``semver-sync`` detects an assignment to ``exports.version`` and uses the
   // string literal for matching. Messing with this line could make
   // ``semver-sync`` fail.
-  exports.version = "0.1.1";
+  exports.version = "0.2.0";
 
   // Export the errors.
   for (var x in errors) { // eslint-disable-line guard-for-in
