@@ -271,6 +271,15 @@ run. The problem though is that as we speak, ``karma-coverage`` uses Istanbul
 need Istanbul 1.0.0-alpha2 or higher. We've not been able to combine the formats
 produced by the various versions.
 
+Testing
+-------
+
+[![Browser Stack](https://www.browserstack.com/images/mail/browserstack-logo-footer.png)](https://www.browserstack.com)
+
+Bluejax is tested using
+[BrowserStack](https://www.browserstack.com). BrowserStack provides this service
+for free under their program for supporting open-source software.
+
 <!--
 #  LocalWords:  Bluejax jQuery's ajax jQuery jquery CommonJS bluejax url jqXHR
 #  LocalWords:  GeneralAjaxError getElementById innerHTML verboseResults nginx
