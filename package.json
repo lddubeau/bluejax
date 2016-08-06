@@ -1,7 +1,7 @@
 {
   "name": "bluejax",
   "description": "jQuery AJAX wrapped in Bluebird promises.",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "versionedSources": "index.js",
   "keywords": [
     "AJAX",
