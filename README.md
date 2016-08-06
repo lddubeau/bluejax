@@ -14,6 +14,17 @@ Features
 * Optionally diagnoses failed queries: network failure, server down, something
   else?
 
+Platforms Supported
+===================
+
+Bluejax's is tested on Chrome, Firefox, IE11 and 10, Edge, Opera, and Safari (on
+El Capitan, Yosemite, Mavericks). We test against the latest versions offered by
+the vendors of these browsers on their respective platforms.
+
+Bluejax's suite fails on IE9. I currently have no plans to work on adding
+support for IE9 but if you want to provide a pull request that will make Bluejax
+run on IE9 and will keep its current tests passing, you are welcome to do so.
+
 Loading Bluejax
 ===============
 
@@ -45,7 +56,7 @@ The module exports these items:
 * ``ajax(...)`` is a function that passes all its arguments to
   ``jQuery.ajax``. By default, it returns a promise that resolves to the data
   received. If it fails, it will reject the promise with a ``GeneralAjaxError``
-  or a derived exception class.
+  or a an exception whose class is derived from ``GeneralAjaxError``.
 
       ajax(url).then(function (data) {
           document.getElementById("foo").innerHTML = data;
@@ -61,6 +72,31 @@ The module exports these items:
   within the number of tries specified and will fail if the tries failed. It is
   **not** affected by the diagnosis done after all tries failed. If you need
   diagnostic information you **must** use the promise.
+
+  This call can be useful for the purpose of inserting Bluejax in contexts that
+  expect to work with ``jQuery.ajax``. For instance, I can make Backbone use
+  Bluejax for all its Ajax requests. In this case, I use a special
+  ``useBluejax`` option to turn on the use of Bluejax. Those calls that do use
+  use ``useBluejax`` go through unchanged.
+
+        var origAjax = Backbone.ajax;
+
+        Backbone.ajax = function ajaxWrapper(options) {
+          if (!options.useBluejax) {
+            return origAjax.call(this, options);
+          }
+
+          // Return the xhr because this is what callers to ``Backbone.ajax``
+          // expect.
+          return ajax$(options).xhr;
+        };
+
+  Although the callers of ``Backbone.ajax`` do not get a promise. The callers
+  still benefit from the possibility of retrying queries. If everything goes to
+  hell they do not get the diagnosis information themselves but a handler that
+  listens for unhandled rejections could use the rejection information to
+  provide an informative error message. This is actually the case for my
+  Backbone application that uses the snippet above.
 
 * ``make(options, field)`` is a utility function that creates a new
   ``ajax$``-like function. The ``options`` parameter is an object containing
@@ -126,10 +162,7 @@ Options
 
 Bluejax currently supports these options:
 
-* ``tries`` tells Bluejax to retry the query for a number of times if it fails
-  due to reasons **other** than the HTTP status code reports an error, aborted
-  or had a parser error. Basically, it retries the connection if the issue
-  appears to be at the network level rather than an application issue. Note that
+* ``tries`` tells Bluejax to retry the query for a number of times. Note that
   the value here should be a number greater than 1. (Values less than 1 yield
   undefined behavior.)
 
