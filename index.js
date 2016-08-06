@@ -30,9 +30,19 @@
 
   // Utility function for classes that are derived from Error. The prototype
   // name is initially set to some generic value which is not particularly
-  // useful. This fixes the problem.
-  function rename(cls) {
-    cls.prototype.name = cls.name;
+  // useful. This fixes the problem. We have to pass an explicit string through
+  // `name` because on some platforms we cannot count on `cls.name`.
+  function rename(cls, name) {
+    try {
+      Object.defineProperty(cls, "name", { value: name });
+    }
+    catch (ex) {
+      // Trying to defineProperty on `name` fails on Safari with a TypeError.
+      if (!(ex instanceof TypeError)) {
+        throw ex;
+      }
+    }
+    cls.prototype.name = name;
   }
 
   // Base class of all errors raised by this library. All errors raised by this
@@ -49,7 +59,21 @@
       Error.captureStackTrace(this, this.constructor);
     }
     else {
-      this.stack = (new Error()).stack;
+      // This will work on many platforms.
+      var fakeError = new Error();
+      if (fakeError.stack) {
+        this.stack = fakeError.stack;
+      }
+      // However, IE11 and some other platforms do not set the stack until
+      // the error is thrown.
+      else {
+        try {
+          throw fakeError;
+        }
+        catch (ex) {
+          this.stack = ex.stack;
+        }
+      }
     }
 
     // We try to produce a message that says something useful.
@@ -71,7 +95,7 @@
   }
 
   inherit(GeneralAjaxError, Error);
-  rename(GeneralAjaxError);
+  rename(GeneralAjaxError, "GeneralAjaxError");
 
   //
   // The possible values of ``jqXHR.textStatus`` are: ``"success"``,
@@ -116,14 +140,10 @@
       GeneralAjaxError.apply(this, arguments);
     };
 
-    // We have to fix the name of the constructor but we cannot just assign to
-    // name.
-    Object.defineProperty(cls, "name", { value: className });
-
     statusToError[name] = cls;
     errors[className] = cls;
     inherit(cls, GeneralAjaxError);
-    rename(cls);
+    rename(cls, className);
   }
 
   // Given a ``jqXHR`` that failed, create an error object.
@@ -149,7 +169,7 @@
 
   errors.ConnectivityError = ConnectivityError;
   inherit(ConnectivityError, GeneralAjaxError);
-  rename(ConnectivityError);
+  rename(ConnectivityError, "ConnectivityError");
 
   function BrowserOfflineError(original) {
     ConnectivityError.call(this, "your browser is offline", original);
@@ -157,7 +177,7 @@
 
   errors.BrowserOfflineError = BrowserOfflineError;
   inherit(BrowserOfflineError, ConnectivityError);
-  rename(BrowserOfflineError);
+  rename(BrowserOfflineError, "BrowserOfflineError");
 
   function ServerDownError(original) {
     ConnectivityError.call(this, "the server appears to be down", original);
@@ -165,7 +185,7 @@
 
   errors.ServerDownError = ServerDownError;
   inherit(ServerDownError, ConnectivityError);
-  rename(ServerDownError);
+  rename(ServerDownError, "ServerDownError");
 
   function NetworkDownError(original) {
     ConnectivityError.call(this, "the network appears to be down", original);
@@ -173,7 +193,7 @@
 
   errors.NetworkDownError = NetworkDownError;
   inherit(NetworkDownError, ConnectivityError);
-  rename(NetworkDownError);
+  rename(NetworkDownError, "NetworkDownError");
 
   // For the ``ajax()`` function cannot use:
   //
@@ -232,7 +252,7 @@
 
     // Nothing to check so we fail immediately.
     if (!servers || servers.length === 0) {
-      return Promise.reject(new ServerDownError(error));
+      throw new ServerDownError(error);
     }
 
     // We check all the servers that the user asked to check. If none respond,
