@@ -1,6 +1,18 @@
-/* global module */
+/* global module require */
+/* eslint-env node */
+"use strict";
+
+// Minimal localConfig if there is not one locally.
+var localConfig = {
+  browserStack: {},
+};
+try {
+  // eslint-disable-next-line import/no-unresolved, global-require
+  localConfig = require("./localConfig");
+}
+catch (ex) {} // eslint-disable-line no-empty
+
 module.exports = function configure(config) {
-  "use strict";
   config.set({
     basePath: "",
     frameworks: ["requirejs", "mocha"],
@@ -61,6 +73,69 @@ module.exports = function configure(config) {
     logLevel: config.LOG_INFO,
     autoWatch: false,
     browsers: ["Chrome", "Firefox"],
+    browserStack: {
+      username: localConfig.browserStack.username,
+      accessKey: localConfig.browserStack.accessKey,
+      project: "bluejax",
+    },
+    customLaunchers: {
+      ChromeWin: {
+        base: "BrowserStack",
+        browser: "Chrome",
+        os: "Windows",
+        os_version: "10",
+      },
+      FirefoxWin: {
+        base: "BrowserStack",
+        browser: "Firefox",
+        os: "Windows",
+        os_version: "10",
+      },
+      IE11: {
+        base: "BrowserStack",
+        browser: "IE",
+        browser_version: "11",
+        os: "Windows",
+        os_version: "10",
+      },
+      IE10: {
+        base: "BrowserStack",
+        browser: "IE",
+        browser_version: "10",
+        os: "Windows",
+        os_version: "8",
+      },
+      Edge: {
+        base: "BrowserStack",
+        browser: "Edge",
+        os: "Windows",
+        os_version: "10",
+      },
+      Opera: {
+        base: "BrowserStack",
+        browser: "Opera",
+        os: "Windows",
+        os_version: "10",
+      },
+      SafariElCapitan: {
+        base: "BrowserStack",
+        browser: "Safari",
+        os: "OS X",
+        os_version: "El Capitan",
+      },
+      SafariYosemite: {
+        base: "BrowserStack",
+        browser: "Safari",
+        os: "OS X",
+        os_version: "Yosemite",
+      },
+      SafariMavericks: {
+        base: "BrowserStack",
+        browser: "Safari",
+        os: "OS X",
+        os_version: "Mavericks",
+      },
+    },
     singleRun: false,
   });
 };
