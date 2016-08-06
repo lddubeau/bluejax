@@ -39,13 +39,39 @@ describe("", () => {
 
   let nextResponses = [];
   let requests = [];
-  before(() => {
-    Object.defineProperty(window.navigator.constructor.prototype, "onLine", {
+
+
+  function mockNavigatorOnline() {
+    const descriptor = {
       get: function getOnline() {
         return onLine;
       },
-    });
+    };
+    // This works in Chrome, Firefox, the IE family (IE, Edge), but not in
+    // Safari. In Safari 9.1, it fails silently.
+    Object.defineProperty(navigator.constructor.prototype, "onLine",
+                          descriptor);
+
+    // Check whether we're actually controlling navigator.onLine.
+    onLine = false;
+    let passes = navigator.onLine === onLine;
+    onLine = true;
+    passes = passes && (navigator.onLine === onLine);
+
+    if (!passes) {
+      // This works in Safari but will fail in Chrome, for instance. So we
+      // cannot just use the following method for all browsers.
+
+      // eslint-disable-next-line no-native-reassign
+      navigator = Object.create(navigator, { onLine: descriptor });
+    }
+  }
+
+  before(() => {
+    mockNavigatorOnline();
+    onLine = true;
   });
+
   beforeEach(() => {
     nextResponses = [something];
     requests = [];
