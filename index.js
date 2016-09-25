@@ -352,7 +352,7 @@
         }
       }
 
-      xhr.fail(failed).success(succeded);
+      xhr.fail(failed).done(succeded);
     });
 
     return { xhr: xhr, promise: p };

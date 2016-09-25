@@ -1,4 +1,12 @@
 
+* 1.1.0:
+
+  + Added support for jQuery 3.x.
+
+* 1.0.0:
+
+  + Tested on more platforms. Made some fixes to handle those platforms.
+
 * 0.2.0:
 
   + Split into ``bluejax`` and ``bluejax.try``.

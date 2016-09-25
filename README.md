@@ -14,6 +14,14 @@ Features
 * Optionally diagnoses failed queries: network failure, server down, something
   else?
 
+jQuery Versions Supported
+=========================
+
+In the 3.x and 2.x series: any version.
+
+In the 1.x series: 1.11 or later. This being said, Bluejax probably works fine
+with 1.9 and 1.10.
+
 Platforms Supported
 ===================
 
