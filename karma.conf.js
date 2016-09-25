@@ -1,6 +1,7 @@
 /* global module require */
 /* eslint-env node */
 "use strict";
+var _ = require("lodash");
 
 // Minimal localConfig if there is not one locally.
 var localConfig = {
@@ -13,7 +14,7 @@ try {
 catch (ex) {} // eslint-disable-line no-empty
 
 module.exports = function configure(config) {
-  config.set({
+  var options = {
     basePath: "",
     frameworks: ["requirejs", "mocha"],
     files: [
@@ -74,8 +75,6 @@ module.exports = function configure(config) {
     autoWatch: false,
     browsers: ["Chrome", "Firefox"],
     browserStack: {
-      username: localConfig.browserStack.username,
-      accessKey: localConfig.browserStack.accessKey,
       project: "bluejax",
     },
     customLaunchers: {
@@ -137,5 +136,18 @@ module.exports = function configure(config) {
       },
     },
     singleRun: false,
-  });
+  };
+
+  // Bring in the options from the localConfig file.
+  _.merge(options.browserStack, localConfig.browserStack);
+
+  var browsers = config.browsers;
+  if (browsers.length === 1 && browsers[0] === "all") {
+    var newList = options.browsers.concat(Object.keys(options.customLaunchers));
+
+    // Yes, we must modify this array in place.
+    browsers.splice.apply(browsers, [0, browsers.length].concat(newList));
+  }
+
+  config.set(options);
 };

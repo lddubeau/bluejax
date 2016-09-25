@@ -27,6 +27,7 @@
     "bluejax.try": "^0.1.0"
   },
   "devDependencies": {
+    "argparse": "^1.0.7",
     "babel-core": "^6.4.0",
     "babel-plugin-transform-es2015-modules-amd": "^6.8.0",
     "babel-polyfill": "^6.9.0",
@@ -56,6 +57,7 @@
     "karma-firefox-launcher": "^1.0.0",
     "karma-mocha": "^1.0.1",
     "karma-requirejs": "^1.0.0",
+    "lodash": "^4.16.2",
     "mocha": ">=2.0.1 <2.4.0",
     "mockery": "^1.7.0",
     "pre-commit": "^1.1.3",

@@ -1,4 +1,4 @@
-/* global __dirname */
+/* global __dirname process */
 import "babel-polyfill";
 import gulp from "gulp";
 import { Server } from "karma";
@@ -11,6 +11,7 @@ import _child_process from "child_process"; // eslint-disable-line camelcase
 import gutil from "gulp-util";
 import eslint from "gulp-eslint";
 import sourcemaps from "gulp-sourcemaps";
+import { ArgumentParser } from "argparse";
 
 // eslint-disable-next-line camelcase
 const child_process = Promise.promisifyAll(_child_process);
@@ -50,6 +51,24 @@ function spawn(cmd, args, options) {
   });
 }
 
+const parser = new ArgumentParser({ addHelp: true });
+
+// We have this here so that the help message is more useful than
+// without. At the same time, this positional argument is not
+// *required*.
+parser.addArgument(["target"], {
+  help: "Target to execute.",
+  nargs: "?",
+  defaultValue: "default",
+});
+
+parser.addArgument(["--browsers"], {
+  help: "Set which browsers to use.",
+  nargs: "+",
+});
+
+const globalOptions = parser.parseArgs(process.argv.slice(2));
+
 gulp.task("lint", () =>
           gulp.src(["*.js", "test/**/*.js", "gulptasks/**/*.js"])
             .pipe(eslint())
@@ -70,13 +89,19 @@ gulp.task("uglify", ["lint"], () =>
             .pipe(gulp.dest("dist")));
 
 function runTest(version) {
+  gutil.log(`Testing against jquery@${version}...`);
+  const args = [];
+  if (globalOptions.browsers) {
+    args.push("--browsers", globalOptions.browsers.join(" "));
+  }
+
   return exec(`npm install jquery@${version}`).then(
-    () => spawn("gulp", ["_test"], {
+    () => spawn("gulp", ["_test"].concat(args), {
       stdio: "inherit",
     }));
 }
 
-const jqueryVersions = ["1.11", "2", "3"];
+const jqueryVersions = ["1.11", "1", "2", "3"];
 
 for (const version of jqueryVersions) {
   gulp.task(`test-with-jquery-${version}`, () => runTest(version));
@@ -95,10 +120,17 @@ gulp.task("test-mocha", () =>
             "node_modules/.bin/_mocha ./test/commonjs.js"));
 
 gulp.task("test-karma", (done) => {
-  new Server({
+  const options = {
     configFile: `${__dirname}/../karma.conf.js`,
     singleRun: true,
-  }, done).start();
+  };
+
+  // We cannot let it be set to ``null`` or ``undefined``.
+  if (globalOptions.browsers) {
+    options.browsers = globalOptions.browsers;
+  }
+
+  new Server(options, done).start();
 });
 
 gulp.task("pack", ["default"], Promise.coroutine(function *distTask() {
