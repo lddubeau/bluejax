@@ -3,7 +3,7 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 // This import will work in testing.
-// eslint-disable-next-line import/no-unresolved
+// eslint-disable-next-line
 import bluejax from "bluejax";
 import Promise from "bluebird";
 
@@ -62,7 +62,7 @@ describe("", () => {
       // This works in Safari but will fail in Chrome, for instance. So we
       // cannot just use the following method for all browsers.
 
-      // eslint-disable-next-line no-native-reassign
+      // eslint-disable-next-line no-native-reassign, no-global-assign
       navigator = Object.create(navigator, { onLine: descriptor });
     }
   }
@@ -76,7 +76,7 @@ describe("", () => {
     nextResponses = [something];
     requests = [];
     xhr = sinon.useFakeXMLHttpRequest();
-    xhr.onCreate = request => {
+    xhr.onCreate = (request) => {
       requests.push(request);
       setTimeout(() => {
         const nextResponse = nextResponses.shift();
@@ -98,7 +98,7 @@ describe("", () => {
             request.statusText = "error";
           }
           else {
-            request.respond.apply(request, nextResponse);
+            request.respond(...nextResponse);
           }
         }
       }, 1);
@@ -117,7 +117,7 @@ describe("", () => {
 
     it("should throw a proper HttpError on failure", () => {
       nextResponses = [error];
-      return assert.isRejected(ajax(url)).then(err => {
+      return assert.isRejected(ajax(url)).then((err) => {
         assert.equal(err.constructor, bluejax.HttpError);
         assert.equal(
           err.toString(),
@@ -137,7 +137,7 @@ describe("", () => {
           verboseExceptions: true,
         },
       };
-      return assert.isRejected(ajax(opts)).then(err => {
+      return assert.isRejected(ajax(opts)).then((err) => {
         assert.equal(err.constructor, bluejax.HttpError);
         assert.equal(
           err.toString(),
@@ -174,7 +174,7 @@ describe("", () => {
                       delay: 10,
                     },
                   }))
-        .then(err => {
+        .then((err) => {
           assert.equal(err.constructor, bluejax.TimeoutError);
           assert.equal(err.textStatus, "timeout");
           assert.equal(requests.length, 3);
@@ -188,7 +188,7 @@ describe("", () => {
           tries: 3,
           delay: 10,
         },
-      })).then(err => {
+      })).then((err) => {
         assert.equal(err.constructor, bluejax.AbortError);
         assert.equal(err.textStatus, "abort");
         assert.equal(requests.length, 1);
@@ -204,7 +204,7 @@ describe("", () => {
           delay: 10,
         },
       }))
-        .then(err => {
+        .then((err) => {
           assert.equal(err.constructor, bluejax.ParserError);
           assert.equal(err.textStatus, "parsererror");
           assert.equal(requests.length, 1);
@@ -267,7 +267,7 @@ describe("", () => {
             serverURL: "http://localhost:1025/",
           },
         },
-      })).then(err => {
+      })).then((err) => {
         // Check the error itself.
         assert.equal(err.constructor, bluejax.BrowserOfflineError);
         assert.equal(err.message, "your browser is offline");
@@ -294,7 +294,7 @@ describe("", () => {
             serverURL: "http://localhost:1025/",
           },
         },
-      })).then(err => {
+      })).then((err) => {
         // Check the error itself.
         assert.equal(err.constructor, bluejax.ServerDownError);
         assert.equal(err.message, "the server appears to be down");
@@ -330,7 +330,7 @@ describe("", () => {
                knownServers,
              },
            },
-         })).then(err => {
+         })).then((err) => {
            // Check the error itself.
            assert.equal(err.constructor, bluejax.NetworkDownError);
            assert.equal(err.message, "the network appears to be down");
@@ -367,7 +367,7 @@ describe("", () => {
                knownServers,
              },
            },
-         })).then(err => {
+         })).then((err) => {
            // Check the error itself.
            assert.equal(err.constructor, bluejax.ServerDownError);
            assert.equal(err.message, "the server appears to be down");
@@ -402,7 +402,7 @@ describe("", () => {
 
     it("should throw a proper error on failure", () => {
       nextResponses = [error];
-      return assert.isRejected(ajaxVerbose(url)).then(err => {
+      return assert.isRejected(ajaxVerbose(url)).then((err) => {
         assert.equal(err.constructor, bluejax.HttpError);
         assert.equal(
           err.toString(),
@@ -422,7 +422,7 @@ describe("", () => {
           verboseExceptions: true,
         },
       };
-      return assert.isRejected(ajaxVerbose(opts)).then(err => {
+      return assert.isRejected(ajaxVerbose(opts)).then((err) => {
         assert.equal(err.constructor, bluejax.HttpError);
         assert.equal(
           err.toString(),
@@ -438,7 +438,7 @@ describe("", () => {
   describe("AjaxError", () => {
     it("should use textStatus if errorThrown is not set", () => {
       nextResponses = ["abort"];
-      return assert.isRejected(ajax(url)).then(err => {
+      return assert.isRejected(ajax(url)).then((err) => {
         assert.equal(err.constructor, bluejax.AbortError);
         assert.equal(err.toString(),
                      "AbortError: Ajax operation failed: abort (0).");
