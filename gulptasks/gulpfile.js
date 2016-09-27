@@ -107,7 +107,12 @@ for (const version of jqueryVersions) {
   gulp.task(`test-with-jquery-${version}`, () => runTest(version));
 }
 
-gulp.task("test", () => Promise.each(jqueryVersions, runTest));
+gulp.task("test",
+          () => Promise.each(jqueryVersions, runTest).then(
+            () => exec(
+              "./node_modules/karma-coverage/node_modules/.bin/istanbul " +
+                "report -d ./coverage/combined/ " +
+                "--include 'coverage/karma/**/coverage*.json' html")));
 
 gulp.task("_test", ["semver", "test-mocha", "test-karma"]);
 
@@ -115,9 +120,9 @@ gulp.task("semver",
           () => execFileAsync("./node_modules/.bin/semver-sync", ["-v"]));
 
 gulp.task("test-mocha", () =>
-          exec("./node_modules/.bin/istanbul cover " +
-            "--dir ./coverage/mocha --report lcov --report json " +
-            "node_modules/.bin/_mocha ./test/commonjs.js"));
+         exec("./node_modules/.bin/istanbul cover " +
+              "--dir ./coverage/mocha --report lcov --report json " +
+              "node_modules/.bin/_mocha ./test/commonjs.js"));
 
 gulp.task("test-karma", (done) => {
   const options = {
